@@ -3,15 +3,13 @@ import pygame
 def draw_button(screen, WIDTH):
     rect = pygame.Rect(WIDTH//2 - 90, 30, 180, 50)
 
-    # shadow
     shadow = rect.copy()
     shadow.y += 4
     pygame.draw.rect(screen, (50,50,80), shadow, border_radius=12)
 
-    # main button
     pygame.draw.rect(screen, (90, 90, 160), rect, border_radius=12)
 
-    # hover effect
+    #hover ka effect
     if rect.collidepoint(pygame.mouse.get_pos()):
         pygame.draw.rect(screen, (120, 120, 200), rect, border_radius=12)
 
