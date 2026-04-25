@@ -1,35 +1,24 @@
 import pygame
 
-def draw_board(screen, BOARD_TOP_Y, SQUARE_SIZE):
-    LIGHT = (240,217,181)
-    DARK = (181,136,99)
+LIGHT = (240, 217, 181) #pinkkkkk
+DARK  = (200, 120, 140)
 
+def draw_board(screen, BOARD_TOP_Y, BOARD_LEFT_X, SQUARE_SIZE):
     for row in range(8):
         for col in range(8):
-            color = LIGHT if (row+col)%2==0 else DARK
-            y = BOARD_TOP_Y + row*SQUARE_SIZE
-            pygame.draw.rect(screen, color, (col*SQUARE_SIZE, y, SQUARE_SIZE, SQUARE_SIZE))
+            color = LIGHT if (row + col) % 2 == 0 else DARK
+            x = BOARD_LEFT_X + col * SQUARE_SIZE
+            y = BOARD_TOP_Y + row * SQUARE_SIZE
+            pygame.draw.rect(screen, color, (x, y, SQUARE_SIZE, SQUARE_SIZE))
 
-# ===== PIECE PALETTE =====
-white_pieces = ["wK","wQ","wR","wB","wN","wP"]
-black_pieces = ["bK","bQ","bR","bB","bN","bP"]
 
-start_x = 50
-white_y = 550
-black_y = 620
-
-palette_rects = []
-
-for i, p in enumerate(white_pieces):
-    x = start_x + i * 60
-    rect = pygame.Rect(x, white_y, 40, 40)
-    palette_rects.append((p, rect))
-    if p in PIECE_IMAGES:
-        screen.blit(PIECE_IMAGES[p], (x, white_y))
-
-for i, p in enumerate(black_pieces):
-    x = start_x + i * 60
-    rect = pygame.Rect(x, black_y, 40, 40)
-    palette_rects.append((p, rect))
-    if p in PIECE_IMAGES:
-        screen.blit(PIECE_IMAGES[p], (x, black_y))
+def draw_pieces(screen, board, PIECE_IMAGES, BOARD_TOP_Y, BOARD_LEFT_X, SQUARE_SIZE):
+    for row in range(8):
+        for col in range(8):
+            piece = board[row][col]
+            if piece is not None:
+                img = PIECE_IMAGES.get(piece)
+                if img:
+                    x = BOARD_LEFT_X + col * SQUARE_SIZE
+                    y = BOARD_TOP_Y + row * SQUARE_SIZE
+                    screen.blit(img, (x, y))
