@@ -1,6 +1,6 @@
 import pygame
-from engine.analyse import analyse_position
-
+#from engine.analyse import analyse_position
+from engine.minimax import analyse_position
 
 def handle_input(events, state):
     board        = state["board"]
