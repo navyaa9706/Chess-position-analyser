@@ -1,37 +1,54 @@
-from engine.board_converter import board_to_fen
-from engine.evaluation import evaluate_board
-from engine.alphabeta import alphabeta
-import chess
+from engine.greedy import analyse_position_greedy
+from engine.minimax import analyse_position_minimax
+from engine.alphabeta import analyse_position_alphabeta
 
-DEPTH = 3
 
 def analyse_position(ui_board, turn):
-    fen = board_to_fen(ui_board, turn)
-    board = chess.Board(fen)
 
-    best_move = None
-    best_score = float("-inf") if turn == "w" else float("inf")
+    print("\n---- ANALYSIS ----\n")
 
-    for move in board.legal_moves:
-        board.push(move)
+    g_move, g_score, g_nodes, g_time = analyse_position_greedy(ui_board, turn)
 
-        score = alphabeta(
-            board,
-            DEPTH - 1,
-            float("-inf"),
-            float("inf"),
-            False if turn == "w" else True
-        )
+    m_move, m_score, m_nodes, m_time = analyse_position_minimax(ui_board, turn)
 
-        board.pop()
+    a_moves, a_scores = analyse_position_alphabeta(ui_board, turn)
 
-        if turn == "w":
-            if score > best_score:
-                best_score = score
-                best_move = move
-        else:
-            if score < best_score:
-                best_score = score
-                best_move = move
+    print("\nALPHA-BETA (Top Moves)")
+    for move, score in a_scores[:5]:
+        print(move.uci(), score)
 
-    return best_move, best_score
+    
+    print("\n---- COMPARISON ----")
+
+    print("\nGREEDY:")
+    print("Move:", g_move, "| Score:", g_score)
+    print("Nodes:", g_nodes, "| Time:", round(g_time, 5))
+
+    print("\nMINIMAX:")
+    print("Move:", m_move, "| Score:", m_score)
+    print("Nodes:", m_nodes, "| Time:", round(m_time, 5))
+
+    print("\nALPHA-BETA:")
+    print("Best Move:", a_moves[0])
+
+    print("\n-----------------\n")
+
+    #can use in UI
+    return {
+        "greedy": {
+            "move": g_move,
+            "score": g_score,
+            "nodes": g_nodes,
+            "time": g_time
+        },
+        "minimax": {
+            "move": m_move,
+            "score": m_score,
+            "nodes": m_nodes,
+            "time": m_time
+        },
+        "alphabeta": {
+            "top_moves": a_moves,
+            "scores": a_scores
+        }
+    }

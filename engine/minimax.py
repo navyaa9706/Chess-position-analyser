@@ -1,14 +1,22 @@
+import time
 from engine.board_converter import board_to_fen
 from engine.evaluation import evaluate_board
 import chess
 
 DEPTH = 3
+nodes = 0
 
-def analyse_position(ui_board, turn):
-    fen = board_to_fen(ui_board)
+def analyse_position_minimax(ui_board, turn):
+    global nodes
+    nodes = 0
+
+    fen = board_to_fen(ui_board, turn)
     board = chess.Board(fen)
 
-    move_scores = []
+    best_move = None
+    best_score = float("-inf") if turn == "w" else float("inf")
+
+    start = time.time()
 
     for move in board.legal_moves:
         board.push(move)
@@ -21,22 +29,34 @@ def analyse_position(ui_board, turn):
 
         board.pop()
 
-        move_scores.append((move, score))
+        if turn == "w":
+            if score > best_score:
+                best_score = score
+                best_move = move
+        else:
+            if score < best_score:
+                best_score = score
+                best_move = move
 
-    reverse = True if turn == "w" else False
-    move_scores.sort(key=lambda x: x[1], reverse=reverse)
+    total_time = time.time() - start
 
-    return [move.uci() for move, _ in move_scores[:3]], move_scores
+    print("\nMINIMAX")
+    print("Best Move:", best_move)
+    print("Score:", best_score)
+    print("Nodes:", nodes)
+    print("Time:", round(total_time, 5), "sec")
+
+    return best_move, best_score, nodes, total_time
 
 
 def minimax(board, depth, maximizing):
+    global nodes
+    nodes += 1
+
     if depth == 0 or board.is_game_over():
         return evaluate_board(board)
 
     moves = list(board.legal_moves)
-
-    if not moves:
-        return evaluate_board(board)
 
     if maximizing:
         max_eval = float("-inf")
@@ -61,4 +81,3 @@ def minimax(board, depth, maximizing):
             min_eval = min(min_eval, eval)
 
         return min_eval
-

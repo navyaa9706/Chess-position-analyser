@@ -1,10 +1,13 @@
 import pygame
-#from engine.analyse import analyse_position
-from engine.alphabeta import analyse_position
+
+from engine.greedy import analyse_position_greedy
+from engine.minimax import analyse_position_minimax
+from engine.alphabeta import analyse_position_alphabeta
+
 
 def handle_input(events, state):
     board        = state["board"]
-    palette      = state["palette"]        # now from panel, not board.py
+    palette      = state["palette"]
     coord_to_sq  = state["coord_to_square"]
     piece_count  = state["piece_count"]
     piece_limits = state["piece_limits"]
@@ -20,10 +23,11 @@ def handle_input(events, state):
 
     for event in events:
 
-        # ── MOUSE DOWN ────────────────────────────────────────────────────────
+        # ── MOUSE DOWN ─────────────────────────────────────
         if event.type == pygame.MOUSEBUTTONDOWN:
             mx, my = event.pos
 
+            # Turn selection
             if white_btn and white_btn.collidepoint(mx, my):
                 turn = "w"
                 continue
@@ -32,16 +36,47 @@ def handle_input(events, state):
                 turn = "b"
                 continue
 
+            # ── ANALYSE BUTTON ─────────────────────────────
             if analyse_btn and analyse_btn.collidepoint(mx, my):
+
                 flat = [p for row in board for p in row]
-                if "wK" in flat and "bK" in flat:
-                    move, score = analyse_position(board, turn)
-                    print("Best Move:", move, "Score:", score)
-                else:
+                if "wK" not in flat or "bK" not in flat:
                     print("Invalid board: both kings required")
+                    continue
+
+                print("\n================ ANALYSIS ================\n")
+
+                # GREEDY
+                g_move, g_score, g_nodes, g_time = analyse_position_greedy(board, turn)
+
+                # MINIMAX
+                m_move, m_score, m_nodes, m_time = analyse_position_minimax(board, turn)
+
+                # ALPHA-BETA
+                a_move, a_score, a_nodes, a_time = analyse_position_alphabeta(board, turn)
+
+                print("\nALPHA-BETA:")
+                print("Move:", a_move, "| Score:", a_score)
+                print("Nodes:", a_nodes, "| Time:", round(a_time, 5))   
+
+                # ── FINAL COMPARISON ───────────────────────
+                print("\n=============== COMPARISON ===============")
+
+                print("\nGREEDY:")
+                print("Move:", g_move, "| Score:", g_score)
+                print("Nodes:", g_nodes, "| Time:", round(g_time, 5))
+
+                print("\nMINIMAX:")
+                print("Move:", m_move, "| Score:", m_score)
+                print("Nodes:", m_nodes, "| Time:", round(m_time, 5))
+
+                print("\nALPHA-BETA:")
+                print("Move:", a_move, "| Score:", a_score)
+                print("Nodes:", a_nodes, "| Time:", round(a_time, 5))
+
                 continue
 
-            # palette pick
+            # ── PALETTE PICK ──────────────────────────────
             picked = False
             for p, rect in palette:
                 if rect.collidepoint(mx, my):
@@ -50,10 +85,11 @@ def handle_input(events, state):
                         old_r, old_c   = None, None
                     picked = True
                     break
+
             if picked:
                 continue
 
-            # board pick
+            # ── BOARD PICK ────────────────────────────────
             square = coord_to_sq((mx, my))
             if square:
                 r, c = square
@@ -62,7 +98,7 @@ def handle_input(events, state):
                     old_r, old_c   = r, c
                     board[r][c]    = None
 
-        # ── MOUSE UP ──────────────────────────────────────────────────────────
+        # ── MOUSE UP ─────────────────────────────────────
         elif event.type == pygame.MOUSEBUTTONUP:
             if not dragging_piece:
                 continue
@@ -74,13 +110,13 @@ def handle_input(events, state):
                 r, c = square
                 if board[r][c] is None:
                     board[r][c] = dragging_piece
-                    if old_r is None:           # came from palette
+                    if old_r is None:
                         piece_count[dragging_piece] += 1
                 else:
-                    if old_r is not None:       # occupied → revert
+                    if old_r is not None:
                         board[old_r][old_c] = dragging_piece
             else:
-                if old_r is not None:           # dropped outside → remove
+                if old_r is not None:
                     piece_count[dragging_piece] = max(
                         0, piece_count[dragging_piece] - 1
                     )
