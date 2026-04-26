@@ -1,10 +1,9 @@
 import pygame
 import sys
 
-from engine.analyse import analyse_position
-
 from ui.board         import draw_board, draw_pieces
-from ui.panel         import draw_panel
+from ui.left_panel    import draw_left_panel
+from ui.right_panel   import draw_right_panel
 from ui.input_handler import handle_input
 from ui.utils         import coord_to_square
 from ui.assets_loader import load_images
@@ -27,6 +26,7 @@ board = [[None] * COLS for _ in range(ROWS)]
 dragging_piece = None
 old_r, old_c   = None, None
 turn           = "w"
+analysis_result = None
 
 piece_limits = {
     "wK": 1, "wQ": 1, "wR": 2, "wB": 2, "wN": 2, "wP": 8,
@@ -38,10 +38,11 @@ palette     = []
 title_font = pygame.font.SysFont("Georgia", 24, bold=True)
 clock      = pygame.time.Clock()
 
+
 while True:
     screen.fill(BG_COLOR)
 
-    # title
+    # ===== TITLE =====
     title_surf = title_font.render("Chess Position Analyzer", True, (60, 30, 45))
     screen.blit(title_surf, (BOARD_LEFT_X, 22))
 
@@ -53,11 +54,22 @@ while True:
             pygame.quit()
             sys.exit()
 
-    # panel draws itself and returns palette list
-    white_btn, black_btn, analyse_btn, palette = draw_panel(
-        screen, turn, PIECE_IMAGES, BOARD_LEFT_X, BOARD_TOP_Y, SQUARE_SIZE
+    # ===== BOARD =====
+    draw_board(screen, BOARD_TOP_Y, BOARD_LEFT_X, SQUARE_SIZE)
+    draw_pieces(screen, board, PIECE_IMAGES, BOARD_TOP_Y, BOARD_LEFT_X, SQUARE_SIZE)
+
+    # ===== LEFT PANEL =====
+    white_btn, black_btn, analyse_btn, palette = draw_left_panel(
+    screen, PIECE_IMAGES, turn, SQUARE_SIZE
     )
 
+    # ===== RIGHT PANEL =====
+    draw_right_panel(
+        screen, analysis_result,
+        BOARD_LEFT_X, SQUARE_SIZE
+    )
+
+    # ===== STATE =====
     state = {
         "board":           board,
         "palette":         palette,
@@ -65,6 +77,7 @@ while True:
         "coord_to_square": lambda pos: coord_to_square(
             pos, BOARD_TOP_Y, BOARD_LEFT_X, BOARD_HEIGHT, SQUARE_SIZE
         ),
+        "analysis_result": analysis_result,
         "piece_count":     piece_count,
         "piece_limits":    piece_limits,
         "turn":            turn,
@@ -76,12 +89,10 @@ while True:
         "old_c":           old_c,
     }
 
-    dragging_piece, old_r, old_c, turn = handle_input(events, state)
+    # ===== INPUT =====
+    dragging_piece, old_r, old_c, turn, analysis_result = handle_input(events, state)
 
-    draw_board(screen, BOARD_TOP_Y, BOARD_LEFT_X, SQUARE_SIZE)
-    draw_pieces(screen, board, PIECE_IMAGES, BOARD_TOP_Y, BOARD_LEFT_X, SQUARE_SIZE)
-
-    # drag ghost
+    # ===== DRAG GHOST =====
     if dragging_piece and dragging_piece in PIECE_IMAGES:
         mx, my = mouse_pos
         screen.blit(

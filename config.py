@@ -1,7 +1,7 @@
 import pygame
 
 # Window — extra width for the larger panel
-WIDTH  = 980
+WIDTH  = 1200
 HEIGHT = 780
 
 # Board layout
@@ -9,7 +9,8 @@ ROWS = 8
 COLS = 8
 
 SQUARE_SIZE  = 72
-BOARD_LEFT_X = 60
+BOARD_LEFT_X = 260
+
 BOARD_TOP_Y  = 80
 BOARD_HEIGHT = ROWS * SQUARE_SIZE   # 576
 BOARD_WIDTH  = COLS * SQUARE_SIZE   # 576
