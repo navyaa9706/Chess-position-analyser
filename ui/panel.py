@@ -68,25 +68,25 @@ def draw_panel(screen, turn, PIECE_IMAGES, BOARD_LEFT_X, BOARD_TOP_Y, SQUARE_SIZ
         return cropped
 
     def palette_row(pieces, start_y):
-        row = []
-
+        row = []        
         for i, p in enumerate(pieces):
-            x    = panel_x + pad + i * (ICON + GAP)
-            rect = pygame.Rect(x, start_y, ICON, ICON)
-            print(f"{p}: rect={rect}")  
+            x = panel_x + pad + i * (ICON + GAP)
+            rect = pygame.Rect(x, start_y, ICON, ICON)        
             pygame.draw.rect(screen, (242, 228, 234), rect, border_radius=8)
-            pygame.draw.rect(screen, (200, 170, 182), rect, 1, border_radius=8)
+            pygame.draw.rect(screen, (200, 170, 182), rect, 1, border_radius=8)        
             img = PIECE_IMAGES.get(p)
             if img:
                 img = crop_transparent(img)
                 orig_w, orig_h = img.get_size()
                 target_h = ICON - 4
                 target_w = int(orig_w * target_h / orig_h)
-                target_w = min(target_w, ICON - 2)
-                img_s = pygame.transform.smoothscale(img, (target_w, target_h))
+                target_w = min(target_w, ICON - 2)        
+                img_s = pygame.transform.smoothscale(img, (target_w, target_h))        
                 blit_x = x + (ICON - target_w) // 2
-                blit_y = start_y + (ICON - target_h) // 2
-                screen.blit(img_s, (blit_x, blit_y))
+                blit_y = start_y + (ICON - target_h) // 2        
+                screen.blit(img_s, (blit_x, blit_y))        
+            row.append((p, rect))
+
         return row
 
     palette = []

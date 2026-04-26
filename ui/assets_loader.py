@@ -19,7 +19,6 @@ def load_images():
             # scale hataao, original rakho
             images[piece] = img
             img = pygame.image.load(path).convert_alpha()
-            print(f"{piece}: {img.get_size()}")  # temporarily add karo
             images[piece] = img
 
     return images
