@@ -1,9 +1,9 @@
 import pygame
-
 from engine.analyse import analyse_position
 
 
 def handle_input(events, state):
+
     board        = state["board"]
     palette      = state["palette"]
     coord_to_sq  = state["coord_to_square"]
@@ -19,13 +19,16 @@ def handle_input(events, state):
     black_btn   = state["black_btn"]
     analyse_btn = state["analyse_btn"]
 
+    # fallback if not present
+    analysis_result = state.get("analysis_result", None)
+
     for event in events:
 
         # ── MOUSE DOWN ─────────────────────────────────────
         if event.type == pygame.MOUSEBUTTONDOWN:
             mx, my = event.pos
 
-            # Turn selection
+            # ✅ TURN SELECT
             if white_btn and white_btn.collidepoint(mx, my):
                 turn = "w"
                 continue
@@ -34,7 +37,7 @@ def handle_input(events, state):
                 turn = "b"
                 continue
 
-            # ── ANALYSE BUTTON ─────────────────────────────
+            # ✅ ANALYSE BUTTON
             if analyse_btn and analyse_btn.collidepoint(mx, my):
 
                 flat = [p for row in board for p in row]
@@ -42,37 +45,13 @@ def handle_input(events, state):
                     print("Invalid board: both kings required")
                     continue
 
-
-                #only one call
-                results = analyse_position(board, turn)
-
-
+                analysis_result = analyse_position(board, turn)
                 continue
 
-            # ── PALETTE PICK ──────────────────────────────
+            # ✅ PALETTE PICK (FIXED — THIS WAS BROKEN)
             picked = False
             for p, rect in palette:
                 if rect.collidepoint(mx, my):
-                    if piece_count[p] < piece_limits[p]:
-                        dragging_piece = p
-                        old_r, old_c   = None, None
-                    picked = True
-                    break
-
-            if picked:
-                continue
-
-            # ── BOARD PICK ────────────────────────────────
-            square = coord_to_sq((mx, my))
-            if square:
-                r, c = square
-                if board[r][c] is not None:
-                    dragging_piece = board[r][c]
-                    old_r, old_c   = r, c
-                    board[r][c]    = None
-            for p, rect in palette:
-                if rect.collidepoint(mx, my):
-                    print(f"Palette clicked: {p}, count={piece_count[p]}, limit={piece_limits[p]}")
                     if piece_count[p] < piece_limits[p]:
                         dragging_piece = p
                         old_r, old_c   = None, None
@@ -81,8 +60,21 @@ def handle_input(events, state):
                     picked = True
                     break
 
+            if picked:
+                continue
+
+            # ✅ BOARD PICK
+            square = coord_to_sq((mx, my))
+            if square:
+                r, c = square
+                if board[r][c] is not None:
+                    dragging_piece = board[r][c]
+                    old_r, old_c   = r, c
+                    board[r][c]    = None
+
         # ── MOUSE UP ─────────────────────────────────────
         elif event.type == pygame.MOUSEBUTTONUP:
+
             if not dragging_piece:
                 continue
 
@@ -91,14 +83,21 @@ def handle_input(events, state):
 
             if square:
                 r, c = square
+
                 if board[r][c] is None:
                     board[r][c] = dragging_piece
+
+                    # from palette
                     if old_r is None:
                         piece_count[dragging_piece] += 1
+
                 else:
+                    # occupied → revert
                     if old_r is not None:
                         board[old_r][old_c] = dragging_piece
+
             else:
+                # dropped outside → delete if from board
                 if old_r is not None:
                     piece_count[dragging_piece] = max(
                         0, piece_count[dragging_piece] - 1
@@ -107,4 +106,4 @@ def handle_input(events, state):
             dragging_piece = None
             old_r, old_c   = None, None
 
-    return dragging_piece, old_r, old_c, turn
+    return dragging_piece, old_r, old_c, turn, analysis_result
