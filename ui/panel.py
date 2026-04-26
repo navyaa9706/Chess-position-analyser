@@ -1,56 +1,130 @@
 import pygame
-import pygame
 
-def draw_panel(screen, turn, BOARD_LEFT_X, SQUARE_SIZE):
-    # ===== POSITION (relative to board) =====
-    panel_x = BOARD_LEFT_X + 8 * SQUARE_SIZE + 40
-    panel_y = 120
-    panel_w = 240
-    panel_h = 400
 
-    # ===== PANEL BOX =====
-    pygame.draw.rect(screen, (245, 230, 240), (panel_x, panel_y, panel_w, panel_h))
-    pygame.draw.rect(screen, (0,0,0), (panel_x, panel_y, panel_w, panel_h), 2)
+def draw_panel(screen, turn, PIECE_IMAGES, BOARD_LEFT_X, BOARD_TOP_Y, SQUARE_SIZE):
+    """
+    Draws the Analysis Panel to the right of the board.
+    Palette is inside the panel (not below board).
+    Returns (white_rect, black_rect, analyse_rect, palette_list).
+    palette_list = [(piece_key, pygame.Rect), ...]
+    """
+    BOARD_RIGHT = BOARD_LEFT_X + 8 * SQUARE_SIZE
 
-    # ===== FONTS =====
-    font = pygame.font.SysFont("Arial", 20, bold=True)
-    small_font = pygame.font.SysFont("Arial", 18)
+    panel_x = BOARD_RIGHT + 28
+    panel_y = BOARD_TOP_Y
+    panel_w = 260
+    panel_h = 8 * SQUARE_SIZE   # same height as board
 
-    # ===== TITLE =====
-    title = font.render("Analysis Panel", True, (0,0,0))
-    screen.blit(title, (panel_x + 30, panel_y + 10))
+    # ── panel background ──────────────────────────────────────────────────────
+    pygame.draw.rect(screen, (248, 236, 241),
+                     (panel_x, panel_y, panel_w, panel_h), border_radius=10)
+    pygame.draw.rect(screen, (190, 150, 165),
+                     (panel_x, panel_y, panel_w, panel_h), 1, border_radius=10)
 
-    # ===== TURN LABEL =====
-    turn_text = small_font.render("Turn:", True, (0,0,0))
-    screen.blit(turn_text, (panel_x + 10, panel_y + 60))
+    font_title = pygame.font.SysFont("Georgia", 16, bold=True)
+    font_label = pygame.font.SysFont("Arial",   13)
+    font_btn   = pygame.font.SysFont("Arial",   14)
 
-    # ===== TURN BUTTONS =====
-    white_rect = pygame.Rect(panel_x + 20, panel_y + 90, 80, 40)
-    black_rect = pygame.Rect(panel_x + 120, panel_y + 90, 80, 40)
+    pad = 20
+    cy  = panel_y + 18
 
-    white_color = (180,180,255) if turn == "w" else (220,220,220)
-    black_color = (180,180,255) if turn == "b" else (220,220,220)
+    # ── ANALYSIS title ────────────────────────────────────────────────────────
+    t = font_title.render("ANALYSIS", True, (100, 65, 80))
+    screen.blit(t, (panel_x + pad, cy))
+    cy += t.get_height() + 14
 
-    pygame.draw.rect(screen, white_color, white_rect)
-    pygame.draw.rect(screen, black_color, black_rect)
+    def divider():
+        nonlocal cy
+        pygame.draw.line(screen, (210, 180, 192),
+                         (panel_x + pad, cy),
+                         (panel_x + panel_w - pad, cy), 1)
+        cy += 12
 
-    pygame.draw.rect(screen, (0,0,0), white_rect, 2)
-    pygame.draw.rect(screen, (0,0,0), black_rect, 2)
+    # ── Turn ──────────────────────────────────────────────────────────────────
+    screen.blit(font_label.render("Turn", True, (130, 90, 108)), (panel_x + pad, cy))
+    cy += font_label.get_height() + 8
 
-    # ===== BUTTON TEXT =====
-    screen.blit(small_font.render("White", True, (0,0,0)),
-                (white_rect.x + 10, white_rect.y + 10))
-    screen.blit(small_font.render("Black", True, (0,0,0)),
-                (black_rect.x + 10, black_rect.y + 10))
+    btn_w, btn_h = 96, 36
+    white_rect = pygame.Rect(panel_x + pad,             cy, btn_w, btn_h)
+    black_rect = pygame.Rect(panel_x + pad + btn_w + 8, cy, btn_w, btn_h)
 
-    # ===== ANALYSE BUTTON =====
-    analyse_rect = pygame.Rect(panel_x + 50, panel_y + 180, 140, 50)
+    for rect, label, is_active in [
+        (white_rect, "White", turn == "w"),
+        (black_rect, "Black", turn == "b"),
+    ]:
+        bg  = (255, 255, 255)      if is_active else (238, 222, 228)
+        bdr = (120, 80, 100)       if is_active else (200, 170, 182)
+        bdr_w = 2 if is_active else 1
+        pygame.draw.rect(screen, bg,  rect, border_radius=7)
+        pygame.draw.rect(screen, bdr, rect, bdr_w, border_radius=7)
+        lbl = font_btn.render(label, True,
+                              (50, 30, 42) if is_active else (140, 100, 118))
+        screen.blit(lbl, (rect.x + rect.w // 2 - lbl.get_width() // 2,
+                          rect.y + rect.h // 2 - lbl.get_height() // 2))
 
-    pygame.draw.rect(screen, (120,120,200), analyse_rect)
-    pygame.draw.rect(screen, (0,0,0), analyse_rect, 2)
+    cy += btn_h + 16
+    divider()
 
-    screen.blit(small_font.render("Analyse", True, (255,255,255)),
-                (analyse_rect.x + 30, analyse_rect.y + 12))
+    # ── Piece palette ─────────────────────────────────────────────────────────
+    ICON = 46
+    GAP  = 8
 
-    # ===== RETURN CLICKABLE AREAS =====
-    return white_rect, black_rect, analyse_rect
+    def palette_row(pieces, start_y):
+        row = []
+        for i, p in enumerate(pieces):
+            x    = panel_x + pad + i * (ICON + GAP)
+            rect = pygame.Rect(x, start_y, ICON, ICON)
+            pygame.draw.rect(screen, (242, 228, 234), rect, border_radius=8)
+            pygame.draw.rect(screen, (200, 170, 182), rect, 1,  border_radius=8)
+            img = PIECE_IMAGES.get(p)
+            if img:
+                img_s = pygame.transform.smoothscale(img, (ICON - 8, ICON - 8))
+                screen.blit(img_s, (x + 4, start_y + 4))
+            row.append((p, rect))
+        return row
+
+    palette = []
+
+    screen.blit(font_label.render("White pieces", True, (130, 90, 108)),
+                (panel_x + pad, cy))
+    cy += font_label.get_height() + 6
+    palette += palette_row(["wK", "wQ", "wR"], cy)
+    cy += ICON + GAP
+    palette += palette_row(["wB", "wN", "wP"], cy)
+    cy += ICON + 14
+
+    screen.blit(font_label.render("Black pieces", True, (130, 90, 108)),
+                (panel_x + pad, cy))
+    cy += font_label.get_height() + 6
+    palette += palette_row(["bK", "bQ", "bR"], cy)
+    cy += ICON + GAP
+    palette += palette_row(["bB", "bN", "bP"], cy)
+    cy += ICON + 16
+
+    divider()
+
+    # ── Analyse button ────────────────────────────────────────────────────────
+    analyse_rect = pygame.Rect(panel_x + pad, cy, panel_w - 2 * pad, 44)
+    pygame.draw.rect(screen, (255, 255, 255), analyse_rect, border_radius=8)
+    pygame.draw.rect(screen, (150, 110, 130), analyse_rect, 1, border_radius=8)
+
+    font_abtn = pygame.font.SysFont("Georgia", 15, bold=True)
+    atxt = font_abtn.render("Analyse position", True, (70, 40, 55))
+    screen.blit(atxt, (analyse_rect.x + analyse_rect.w // 2 - atxt.get_width() // 2,
+                       analyse_rect.y + analyse_rect.h // 2 - atxt.get_height() // 2))
+    cy += 44 + 14
+
+    # ── Result box ────────────────────────────────────────────────────────────
+    screen.blit(font_label.render("Result", True, (130, 90, 108)),
+                (panel_x + pad, cy))
+    cy += font_label.get_height() + 6
+
+    result_h = panel_y + panel_h - cy - 14
+    if result_h > 0:
+        result_rect = pygame.Rect(panel_x + pad, cy, panel_w - 2 * pad, result_h)
+        pygame.draw.rect(screen, (238, 222, 228), result_rect, border_radius=6)
+        hint = font_label.render("Place pieces and press analyse",
+                                 True, (160, 120, 138))
+        screen.blit(hint, (result_rect.x + 8, result_rect.y + 8))
+
+    return white_rect, black_rect, analyse_rect, palette
