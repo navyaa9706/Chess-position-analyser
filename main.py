@@ -20,9 +20,7 @@ turn = "w"
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Chess Position Analyzer")
 
-BG_COLOR = (230, 200, 210)
-
-# ================= LOAD =================
+BG_COLOR = (245, 220, 225)# ================= LOAD =================
 PIECE_IMAGES = load_images()
 
 board = [[None for _ in range(COLS)] for _ in range(ROWS)]

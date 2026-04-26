@@ -1,7 +1,7 @@
 import pygame
 
-LIGHT = (240, 217, 181)
-DARK  = (200, 120, 140)
+LIGHT = (250, 230, 235)   # very light pink
+DARK  = (210, 120, 140)   # muted rose
 
 # ================= BOARD =================
 def draw_board(screen, BOARD_TOP_Y, BOARD_LEFT_X, SQUARE_SIZE):
