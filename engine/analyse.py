@@ -11,13 +11,8 @@ def analyse_position(ui_board, turn):
 
     m_move, m_score, m_nodes, m_time = analyse_position_minimax(ui_board, turn)
 
-    a_moves, a_scores = analyse_position_alphabeta(ui_board, turn)
+    a_move, a_score, a_nodes, a_time = analyse_position_alphabeta(ui_board, turn)
 
-    print("\nALPHA-BETA (Top Moves)")
-    for move, score in a_scores[:5]:
-        print(move.uci(), score)
-
-    
     print("\n---- COMPARISON ----")
 
     print("\nGREEDY:")
@@ -29,11 +24,12 @@ def analyse_position(ui_board, turn):
     print("Nodes:", m_nodes, "| Time:", round(m_time, 5))
 
     print("\nALPHA-BETA:")
-    print("Best Move:", a_moves[0])
+    print("Move:", a_move, "| Score:", a_score)
+    print("Nodes:", a_nodes, "| Time:", round(a_time, 5))
 
     print("\n-----------------\n")
 
-    #can use in UI
+    # RETURN (for UI)
     return {
         "greedy": {
             "move": g_move,
@@ -48,7 +44,9 @@ def analyse_position(ui_board, turn):
             "time": m_time
         },
         "alphabeta": {
-            "top_moves": a_moves,
-            "scores": a_scores
+            "move": a_move,
+            "score": a_score,
+            "nodes": a_nodes,
+            "time": a_time
         }
     }

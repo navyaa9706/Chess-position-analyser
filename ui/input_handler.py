@@ -1,8 +1,6 @@
 import pygame
 
-from engine.greedy import analyse_position_greedy
-from engine.minimax import analyse_position_minimax
-from engine.alphabeta import analyse_position_alphabeta
+from engine.analyse import analyse_position
 
 
 def handle_input(events, state):
@@ -44,35 +42,10 @@ def handle_input(events, state):
                     print("Invalid board: both kings required")
                     continue
 
-                print("\n================ ANALYSIS ================\n")
 
-                # GREEDY
-                g_move, g_score, g_nodes, g_time = analyse_position_greedy(board, turn)
+                #only one call
+                results = analyse_position(board, turn)
 
-                # MINIMAX
-                m_move, m_score, m_nodes, m_time = analyse_position_minimax(board, turn)
-
-                # ALPHA-BETA
-                a_move, a_score, a_nodes, a_time = analyse_position_alphabeta(board, turn)
-
-                print("\nALPHA-BETA:")
-                print("Move:", a_move, "| Score:", a_score)
-                print("Nodes:", a_nodes, "| Time:", round(a_time, 5))   
-
-                # ── FINAL COMPARISON ───────────────────────
-                print("\n=============== COMPARISON ===============")
-
-                print("\nGREEDY:")
-                print("Move:", g_move, "| Score:", g_score)
-                print("Nodes:", g_nodes, "| Time:", round(g_time, 5))
-
-                print("\nMINIMAX:")
-                print("Move:", m_move, "| Score:", m_score)
-                print("Nodes:", m_nodes, "| Time:", round(m_time, 5))
-
-                print("\nALPHA-BETA:")
-                print("Move:", a_move, "| Score:", a_score)
-                print("Nodes:", a_nodes, "| Time:", round(a_time, 5))
 
                 continue
 
