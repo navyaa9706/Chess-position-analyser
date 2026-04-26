@@ -1,12 +1,13 @@
-import time
 from engine.board_converter import board_to_fen
 from engine.evaluation import evaluate_board
 import chess
+from engine.ordering import order_moves
+import time
 
 DEPTH = 3
 nodes = 0
 
-def analyse_position_minimax(ui_board, turn):
+def analyse_position_alphabeta(ui_board, turn):
     global nodes
     nodes = 0
 
@@ -21,9 +22,11 @@ def analyse_position_minimax(ui_board, turn):
     for move in board.legal_moves:
         board.push(move)
 
-        score = minimax(
+        score = alphabeta(
             board,
             DEPTH - 1,
+            float("-inf"),
+            float("inf"),
             False if turn == "w" else True
         )
 
@@ -40,7 +43,7 @@ def analyse_position_minimax(ui_board, turn):
 
     total_time = time.time() - start
 
-    print("\nMINIMAX")
+    print("\nALPHA-BETA")
     print("Best Move:", best_move)
     print("Score:", best_score)
     print("Nodes:", nodes)
@@ -49,7 +52,7 @@ def analyse_position_minimax(ui_board, turn):
     return best_move, best_score, nodes, total_time
 
 
-def minimax(board, depth, maximizing):
+def alphabeta(board, depth, alpha, beta, maximizing):
     global nodes
     nodes += 1
 
@@ -63,10 +66,14 @@ def minimax(board, depth, maximizing):
 
         for move in moves:
             board.push(move)
-            eval = minimax(board, depth - 1, False)
+            eval = alphabeta(board, depth - 1, alpha, beta, False)
             board.pop()
 
             max_eval = max(max_eval, eval)
+            alpha = max(alpha, eval)
+
+            if beta <= alpha:
+                break
 
         return max_eval
 
@@ -75,9 +82,13 @@ def minimax(board, depth, maximizing):
 
         for move in moves:
             board.push(move)
-            eval = minimax(board, depth - 1, True)
+            eval = alphabeta(board, depth - 1, alpha, beta, True)
             board.pop()
 
             min_eval = min(min_eval, eval)
+            beta = min(beta, eval)
+
+            if beta <= alpha:
+                break
 
         return min_eval

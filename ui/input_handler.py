@@ -1,10 +1,11 @@
 import pygame
+
 from engine.analyse import analyse_position
 
 
 def handle_input(events, state):
     board        = state["board"]
-    palette      = state["palette"]        # now from panel, not board.py
+    palette      = state["palette"]
     coord_to_sq  = state["coord_to_square"]
     piece_count  = state["piece_count"]
     piece_limits = state["piece_limits"]
@@ -20,10 +21,11 @@ def handle_input(events, state):
 
     for event in events:
 
-        # ── MOUSE DOWN ────────────────────────────────────────────────────────
+        # ── MOUSE DOWN ─────────────────────────────────────
         if event.type == pygame.MOUSEBUTTONDOWN:
             mx, my = event.pos
 
+            # Turn selection
             if white_btn and white_btn.collidepoint(mx, my):
                 turn = "w"
                 continue
@@ -32,16 +34,22 @@ def handle_input(events, state):
                 turn = "b"
                 continue
 
+            # ── ANALYSE BUTTON ─────────────────────────────
             if analyse_btn and analyse_btn.collidepoint(mx, my):
+
                 flat = [p for row in board for p in row]
-                if "wK" in flat and "bK" in flat:
-                    move, score = analyse_position(board, turn)
-                    print("Best Move:", move, "Score:", score)
-                else:
+                if "wK" not in flat or "bK" not in flat:
                     print("Invalid board: both kings required")
+                    continue
+
+
+                #only one call
+                results = analyse_position(board, turn)
+
+
                 continue
 
-            # palette pick
+            # ── PALETTE PICK ──────────────────────────────
             picked = False
             for p, rect in palette:
                 if rect.collidepoint(mx, my):
@@ -50,10 +58,11 @@ def handle_input(events, state):
                         old_r, old_c   = None, None
                     picked = True
                     break
+
             if picked:
                 continue
 
-            # board pick
+            # ── BOARD PICK ────────────────────────────────
             square = coord_to_sq((mx, my))
             if square:
                 r, c = square
@@ -72,7 +81,7 @@ def handle_input(events, state):
                     picked = True
                     break
 
-        # ── MOUSE UP ──────────────────────────────────────────────────────────
+        # ── MOUSE UP ─────────────────────────────────────
         elif event.type == pygame.MOUSEBUTTONUP:
             if not dragging_piece:
                 continue
@@ -84,13 +93,13 @@ def handle_input(events, state):
                 r, c = square
                 if board[r][c] is None:
                     board[r][c] = dragging_piece
-                    if old_r is None:           # came from palette
+                    if old_r is None:
                         piece_count[dragging_piece] += 1
                 else:
-                    if old_r is not None:       # occupied → revert
+                    if old_r is not None:
                         board[old_r][old_c] = dragging_piece
             else:
-                if old_r is not None:           # dropped outside → remove
+                if old_r is not None:
                     piece_count[dragging_piece] = max(
                         0, piece_count[dragging_piece] - 1
                     )
