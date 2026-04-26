@@ -3,10 +3,11 @@ from engine.board_converter import board_to_fen
 from engine.evaluation import evaluate_board
 import chess
 
-DEPTH = 4
+MAX_DEPTH = 4
 nodes = 0
 
-def analyse_position_minimax(ui_board, turn):
+
+def analyse_position_iddfs(ui_board, turn):
     global nodes
     nodes = 0
 
@@ -18,29 +19,32 @@ def analyse_position_minimax(ui_board, turn):
 
     start = time.time()
 
-    for move in board.legal_moves:
-        board.push(move)
+    for depth in range(1, MAX_DEPTH + 1):
+        current_best_move = None
+        current_best_score = float("-inf") if turn == "w" else float("inf")
 
-        score = minimax(
-            board,
-            DEPTH - 1,
-            False if turn == "w" else True
-        )
+        for move in board.legal_moves:
+            board.push(move)
 
-        board.pop()
+            score = minimax(board, depth - 1, False if turn == "w" else True)
 
-        if turn == "w":
-            if score > best_score:
-                best_score = score
-                best_move = move
-        else:
-            if score < best_score:
-                best_score = score
-                best_move = move
+            board.pop()
+
+            if turn == "w":
+                if score > current_best_score:
+                    current_best_score = score
+                    current_best_move = move
+            else:
+                if score < current_best_score:
+                    current_best_score = score
+                    current_best_move = move
+
+        best_move = current_best_move
+        best_score = current_best_score
 
     total_time = time.time() - start
 
-    print("\nMINIMAX")
+    print("\nIDDFS")
     print("Best Move:", best_move)
     print("Score:", best_score)
     print("Nodes:", nodes)
@@ -60,24 +64,17 @@ def minimax(board, depth, maximizing):
 
     if maximizing:
         max_eval = float("-inf")
-
         for move in moves:
             board.push(move)
             eval = minimax(board, depth - 1, False)
             board.pop()
-
             max_eval = max(max_eval, eval)
-
         return max_eval
-
     else:
         min_eval = float("inf")
-
         for move in moves:
             board.push(move)
             eval = minimax(board, depth - 1, True)
             board.pop()
-
             min_eval = min(min_eval, eval)
-
         return min_eval
