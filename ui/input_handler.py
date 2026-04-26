@@ -61,6 +61,16 @@ def handle_input(events, state):
                     dragging_piece = board[r][c]
                     old_r, old_c   = r, c
                     board[r][c]    = None
+            for p, rect in palette:
+                if rect.collidepoint(mx, my):
+                    print(f"Palette clicked: {p}, count={piece_count[p]}, limit={piece_limits[p]}")
+                    if piece_count[p] < piece_limits[p]:
+                        dragging_piece = p
+                        old_r, old_c   = None, None
+                    else:
+                        print(f"LIMIT REACHED for {p}")
+                    picked = True
+                    break
 
         # ── MOUSE UP ──────────────────────────────────────────────────────────
         elif event.type == pygame.MOUSEBUTTONUP:

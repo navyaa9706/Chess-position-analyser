@@ -2,20 +2,14 @@ import pygame
 
 
 def draw_panel(screen, turn, PIECE_IMAGES, BOARD_LEFT_X, BOARD_TOP_Y, SQUARE_SIZE):
-    """
-    Draws the Analysis Panel to the right of the board.
-    Palette is inside the panel (not below board).
-    Returns (white_rect, black_rect, analyse_rect, palette_list).
-    palette_list = [(piece_key, pygame.Rect), ...]
-    """
+
     BOARD_RIGHT = BOARD_LEFT_X + 8 * SQUARE_SIZE
 
     panel_x = BOARD_RIGHT + 28
     panel_y = BOARD_TOP_Y
     panel_w = 260
-    panel_h = 8 * SQUARE_SIZE   # same height as board
+    panel_h = 8 * SQUARE_SIZE
 
-    # ── panel background ──────────────────────────────────────────────────────
     pygame.draw.rect(screen, (248, 236, 241),
                      (panel_x, panel_y, panel_w, panel_h), border_radius=10)
     pygame.draw.rect(screen, (190, 150, 165),
@@ -28,7 +22,6 @@ def draw_panel(screen, turn, PIECE_IMAGES, BOARD_LEFT_X, BOARD_TOP_Y, SQUARE_SIZ
     pad = 20
     cy  = panel_y + 18
 
-    # ── ANALYSIS title ────────────────────────────────────────────────────────
     t = font_title.render("ANALYSIS", True, (100, 65, 80))
     screen.blit(t, (panel_x + pad, cy))
     cy += t.get_height() + 14
@@ -40,7 +33,6 @@ def draw_panel(screen, turn, PIECE_IMAGES, BOARD_LEFT_X, BOARD_TOP_Y, SQUARE_SIZ
                          (panel_x + panel_w - pad, cy), 1)
         cy += 12
 
-    # ── Turn ──────────────────────────────────────────────────────────────────
     screen.blit(font_label.render("Turn", True, (130, 90, 108)), (panel_x + pad, cy))
     cy += font_label.get_height() + 8
 
@@ -52,8 +44,8 @@ def draw_panel(screen, turn, PIECE_IMAGES, BOARD_LEFT_X, BOARD_TOP_Y, SQUARE_SIZ
         (white_rect, "White", turn == "w"),
         (black_rect, "Black", turn == "b"),
     ]:
-        bg  = (255, 255, 255)      if is_active else (238, 222, 228)
-        bdr = (120, 80, 100)       if is_active else (200, 170, 182)
+        bg    = (255, 255, 255) if is_active else (238, 222, 228)
+        bdr   = (120, 80, 100) if is_active else (200, 170, 182)
         bdr_w = 2 if is_active else 1
         pygame.draw.rect(screen, bg,  rect, border_radius=7)
         pygame.draw.rect(screen, bdr, rect, bdr_w, border_radius=7)
@@ -69,18 +61,32 @@ def draw_panel(screen, turn, PIECE_IMAGES, BOARD_LEFT_X, BOARD_TOP_Y, SQUARE_SIZ
     ICON = 46
     GAP  = 8
 
+    def crop_transparent(surf):
+        r = surf.get_bounding_rect()
+        cropped = pygame.Surface(r.size, pygame.SRCALPHA)
+        cropped.blit(surf, (0, 0), r)
+        return cropped
+
     def palette_row(pieces, start_y):
         row = []
+
         for i, p in enumerate(pieces):
             x    = panel_x + pad + i * (ICON + GAP)
             rect = pygame.Rect(x, start_y, ICON, ICON)
+            print(f"{p}: rect={rect}")  
             pygame.draw.rect(screen, (242, 228, 234), rect, border_radius=8)
-            pygame.draw.rect(screen, (200, 170, 182), rect, 1,  border_radius=8)
+            pygame.draw.rect(screen, (200, 170, 182), rect, 1, border_radius=8)
             img = PIECE_IMAGES.get(p)
             if img:
-                img_s = pygame.transform.smoothscale(img, (ICON - 8, ICON - 8))
-                screen.blit(img_s, (x + 4, start_y + 4))
-            row.append((p, rect))
+                img = crop_transparent(img)
+                orig_w, orig_h = img.get_size()
+                target_h = ICON - 4
+                target_w = int(orig_w * target_h / orig_h)
+                target_w = min(target_w, ICON - 2)
+                img_s = pygame.transform.smoothscale(img, (target_w, target_h))
+                blit_x = x + (ICON - target_w) // 2
+                blit_y = start_y + (ICON - target_h) // 2
+                screen.blit(img_s, (blit_x, blit_y))
         return row
 
     palette = []

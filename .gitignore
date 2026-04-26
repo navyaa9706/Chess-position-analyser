@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
 
 # Virtual env
 venv/
@@ -10,3 +11,4 @@ venv/
 
 # OS junk
 .DS_Store
+Thumbs.db

@@ -1,6 +1,9 @@
 import pygame
 import os
 
+import pygame
+import os
+
 def load_images():
     piece_files = {
         "wP": "wp.png", "wR": "wr.png", "wN": "wn.png", "wB": "wb.png", "wQ": "wq.png", "wK": "wk.png",
@@ -12,7 +15,11 @@ def load_images():
     for piece, filename in piece_files.items():
         path = os.path.join("assets/images", filename)
         if os.path.exists(path):
-            img = pygame.image.load(path)
-            images[piece] = pygame.transform.scale(img, (40, 40))
+            img = pygame.image.load(path).convert_alpha()  
+            # scale hataao, original rakho
+            images[piece] = img
+            img = pygame.image.load(path).convert_alpha()
+            print(f"{piece}: {img.get_size()}")  # temporarily add karo
+            images[piece] = img
 
     return images
